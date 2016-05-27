@@ -5,6 +5,7 @@ import os
 import sys
 import statistics
 import time
+from tqdm import tqdm
 
 import chainer
 from chainer import links as L
@@ -97,9 +98,8 @@ def train_loop(process_idx, counter, max_score, args, agent, env, start_time):
         global_t = 0
         local_t = 0
 
+        start_time = time.time()
         while True:
-
-            # Get and increment the global counter
             with counter.get_lock():
                 counter.value += 1
                 global_t = counter.value
@@ -125,7 +125,7 @@ def train_loop(process_idx, counter, max_score, args, agent, env, start_time):
             else:
                 env.receive_action(action)
 
-            if global_t % args.eval_frequency == 0:
+            if False: #global_t % args.eval_frequency == 0:
                 # Evaluation
 
                 # We must use a copy of the model because test runs can change
@@ -154,6 +154,7 @@ def train_loop(process_idx, counter, max_score, args, agent, env, start_time):
                         print('Saved the current best model to {}'.format(
                             filename))
                         max_score.value = mean
+        print("loop : %2.2f sec" % (time.time() - start_time))
 
     except KeyboardInterrupt:
         if process_idx == 0:
@@ -259,6 +260,7 @@ def main():
                        args, agent, env, start_time)
 
     async.run_async(args.processes, run_func)
+    #run_func(0)
 
 
 if __name__ == '__main__':
